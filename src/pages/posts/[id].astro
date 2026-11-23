@@ -8,7 +8,15 @@ export async function getStaticPaths() {
   return posts.map((post) => ({ params: { id: post.id }, props: { post } }));
 }
 const { post } = Astro.props;
-const { Content } = await render(post);
+const { Content, headings } = await render(post);
+const all = await getCollection('posts');
+const related = all
+  .filter((p) => p.id !== post.id)
+  .map((p) => ({ p, score: p.data.tags.filter((t) => post.data.tags.includes(t)).length }))
+  .sort((a, b) => b.score - a.score || b.p.data.pubDate.valueOf() - a.p.data.pubDate.valueOf())
+  .slice(0, 3)
+  .map((x) => x.p);
+const toc = headings.filter((h) => h.depth === 2 || h.depth === 3);
 ---
 <Base title={post.data.title} description={post.data.description} ogType="article">
   <article>
@@ -16,8 +24,24 @@ const { Content } = await render(post);
     <time datetime={post.data.pubDate.toISOString()}>{post.data.pubDate.toISOString().slice(0, 10)}</time>
     <p>{post.data.tags.map((t) => <a href={`/tags/${t}/`}>#{t} </a>)}</p>
     <AdSlot position="top" />
+    {toc.length >= 2 && (
+      <nav class="toc" aria-label="目次">
+        <strong>目次</strong>
+        <ul>
+          {toc.map((h) => <li style={h.depth === 3 ? 'margin-left:1em' : undefined}><a href={`#${h.slug}`}>{h.text}</a></li>)}
+        </ul>
+      </nav>
+    )}
     <Content />
     <p>出典: <a href={post.data.sourceUrl} rel="noopener">{post.data.sourceUrl}</a></p>
+    {related.length > 0 && (
+      <section class="related" aria-label="関連記事">
+        <h2>関連記事</h2>
+        <ul>
+          {related.map((r) => <li><a href={`/posts/${r.id}/`}>{r.data.title}</a></li>)}
+        </ul>
+      </section>
+    )}
     <AdSlot position="bottom" />
   </article>
 </Base>
