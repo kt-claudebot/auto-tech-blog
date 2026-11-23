@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://auto-tech-blog.pages.dev/sitemap-index.xml

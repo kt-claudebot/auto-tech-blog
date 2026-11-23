@@ -1,0 +1,12 @@
+---
+interface Props {
+  position: 'top' | 'bottom';
+}
+const { position } = Astro.props;
+---
+<aside class={`ad-slot ad-slot-${position}`} data-position={position}>
+  <!--
+    広告・アフィリエイトのプレースホルダー。利用時にコメントを外して差し替える。
+    <a href="https://example.com/affiliate" rel="sponsored noopener" target="_blank">広告リンク</a>
+  -->
+</aside>
