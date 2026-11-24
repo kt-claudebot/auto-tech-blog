@@ -1,0 +1,57 @@
+---
+import Base from '../../layouts/Base.astro';
+const sample = '{"name":"auto-tech-blog","tags":["astro","json"],"nested":{"ok":true,"n":1}}';
+---
+<Base title="JSON 整形・検証ツール | Auto Tech Blog" description="JSON を貼り付けて整形（インデント）・圧縮・構文チェックができる無料ツール。ブラウザ内で完結し、入力は外部に送信されません。">
+  <h1>JSON 整形・検証ツール</h1>
+  <p>JSON を貼り付けて、整形・圧縮・構文チェックができます。入力内容は外部に送信されず、ブラウザ内だけで処理されます。</p>
+  <p>
+    <label>インデント:
+      <select id="indent">
+        <option value="2" selected>スペース 2</option>
+        <option value="4">スペース 4</option>
+        <option value="tab">タブ</option>
+      </select>
+    </label>
+  </p>
+  <p><textarea id="src" rows="14" style="width:100%;font-family:monospace" spellcheck="false" aria-label="JSON 入力" set:text={sample}></textarea></p>
+  <p>
+    <button type="button" id="fmt">整形</button>
+    <button type="button" id="min">圧縮</button>
+    <button type="button" id="copy">結果をコピー</button>
+  </p>
+  <p id="msg" role="alert"></p>
+  <h2>仕様メモ</h2>
+  <ul>
+    <li>構文チェックにはブラウザ標準の <code>JSON.parse</code> を使っています。コメントや末尾カンマなど、標準 JSON ではない記法はエラーになります。</li>
+    <li>整形・圧縮には <code>JSON.stringify</code> を使うため、キーの重複は後勝ちになり、巨大な整数は精度が失われる場合があります。</li>
+  </ul>
+  <p>設定ファイルや API レスポンスの確認用の簡易ツールです。重要なデータは専用の検証環境でも確認してください。</p>
+  <script is:inline>
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      function run(minify) {
+        var msg = $('msg');
+        msg.style.color = '#b00020';
+        try {
+          var v = JSON.parse($('src').value);
+          var ind = $('indent').value;
+          $('src').value = minify ? JSON.stringify(v) : JSON.stringify(v, null, ind === 'tab' ? '\t' : Number(ind));
+          msg.style.color = '#0a7a2f';
+          msg.textContent = '有効な JSON です。';
+        } catch (e) {
+          msg.textContent = 'JSON エラー: ' + e.message;
+        }
+      }
+      $('fmt').addEventListener('click', function () { run(false); });
+      $('min').addEventListener('click', function () { run(true); });
+      $('copy').addEventListener('click', function () {
+        if (navigator.clipboard) {
+          navigator.clipboard.writeText($('src').value).then(function () {
+            $('msg').style.color = '#0a7a2f'; $('msg').textContent = 'コピーしました。';
+          }, function () { $('msg').style.color = '#b00020'; $('msg').textContent = 'コピーに失敗しました。'; });
+        }
+      });
+    })();
+  </script>
+</Base>
