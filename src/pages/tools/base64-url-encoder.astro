@@ -1,0 +1,51 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="Base64 / URL エンコード・デコードツール | Auto Tech Blog" description="テキストを Base64（UTF-8）や URL エンコードに変換・復元できる無料ツール。ブラウザ内で完結し、入力は外部に送信されません。">
+  <h1>Base64 / URL エンコード・デコードツール</h1>
+  <p>テキストの Base64（UTF-8）変換と URL エンコードを行えます。入力内容は外部に送信されず、ブラウザ内だけで処理されます。</p>
+  <p><textarea id="src" rows="10" style="width:100%;font-family:monospace" spellcheck="false" aria-label="入力">こんにちは, Astro!</textarea></p>
+  <p>
+    <button type="button" id="b64e">Base64 エンコード</button>
+    <button type="button" id="b64d">Base64 デコード</button>
+    <button type="button" id="urle">URL エンコード</button>
+    <button type="button" id="urld">URL デコード</button>
+    <button type="button" id="copy">結果をコピー</button>
+  </p>
+  <p id="msg" role="alert"></p>
+  <h2>仕様メモ</h2>
+  <ul>
+    <li>Base64 は <code>TextEncoder</code> / <code>TextDecoder</code> で UTF-8 のバイト列として処理するため、日本語も扱えます。</li>
+    <li>URL エンコードにはブラウザ標準の <code>encodeURIComponent</code> / <code>decodeURIComponent</code> を使っています。</li>
+    <li>Base64 は暗号化ではありません。パスワードなどの秘匿情報を「隠す」目的には使えません。</li>
+  </ul>
+  <p>関連ツール: <a href="/tools/json-formatter/">JSON 整形・検証ツール</a> / <a href="/tools/subnet-calculator/">サブネット計算機</a></p>
+  <script is:inline>
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      function ok(t) { $('msg').style.color = '#0a7a2f'; $('msg').textContent = t; }
+      function ng(t) { $('msg').style.color = '#b00020'; $('msg').textContent = t; }
+      function run(fn, label) {
+        try { $('src').value = fn($('src').value); ok(label + ' しました。'); }
+        catch (e) { ng('エラー: ' + e.message); }
+      }
+      function b64e(s) {
+        var bytes = new TextEncoder().encode(s), bin = '';
+        for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+        return btoa(bin);
+      }
+      function b64d(s) {
+        var bin = atob(s.replace(/\s+/g, '')), bytes = new Uint8Array(bin.length);
+        for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+        return new TextDecoder('utf-8', { fatal: true }).decode(bytes);
+      }
+      $('b64e').addEventListener('click', function () { run(b64e, 'Base64 エンコード'); });
+      $('b64d').addEventListener('click', function () { run(b64d, 'Base64 デコード'); });
+      $('urle').addEventListener('click', function () { run(encodeURIComponent, 'URL エンコード'); });
+      $('urld').addEventListener('click', function () { run(decodeURIComponent, 'URL デコード'); });
+      $('copy').addEventListener('click', function () {
+        if (navigator.clipboard) navigator.clipboard.writeText($('src').value).then(function () { ok('コピーしました。'); }, function () { ng('コピーに失敗しました。'); });
+      });
+    })();
+  </script>
+</Base>
