@@ -1,0 +1,49 @@
+---
+import Base from '../../layouts/Base.astro';
+---
+<Base title="UNIX 時間（エポック秒）変換ツール | Auto Tech Blog" description="UNIX 時間（秒・ミリ秒）と日時を相互変換できる無料ツール。ブラウザ内で完結し、入力は外部に送信されません。">
+  <h1>UNIX 時間（エポック秒）変換ツール</h1>
+  <p>UNIX 時間と日時を相互に変換します。処理はブラウザ内だけで完結し、入力は外部に送信されません。</p>
+  <h2>UNIX 時間 → 日時</h2>
+  <p>
+    <input id="ts" type="text" value="" style="width:100%;font-family:monospace" aria-label="UNIX 時間" placeholder="例: 1700000000（秒）または 1700000000000（ミリ秒）">
+  </p>
+  <p><button type="button" id="toDate">日時に変換</button> <button type="button" id="now">現在時刻を入力</button></p>
+  <pre id="out1" style="white-space:pre-wrap"></pre>
+  <h2>日時 → UNIX 時間</h2>
+  <p><input id="dt" type="datetime-local" step="1" aria-label="日時（ブラウザのローカル時刻）"></p>
+  <p><button type="button" id="toTs">UNIX 時間に変換</button></p>
+  <pre id="out2" style="white-space:pre-wrap"></pre>
+  <p id="msg" role="alert" style="color:#b00020"></p>
+  <h2>仕様メモ</h2>
+  <ul>
+    <li>桁数が 13 桁以上の数値はミリ秒、それ未満は秒として扱います（簡易判定）。</li>
+    <li>ローカル時刻の表示はお使いのブラウザのタイムゾーン設定に従います。</li>
+    <li>日時の入力欄もブラウザのローカル時刻として解釈されます。</li>
+  </ul>
+  <p>関連ツール: <a href="/tools/json-formatter/">JSON 整形・検証ツール</a> / <a href="/tools/base64-url-encoder/">Base64 / URL エンコード・デコードツール</a> / <a href="/tools/subnet-calculator/">サブネット計算機</a></p>
+  <script is:inline>
+    (function () {
+      var $ = function (id) { return document.getElementById(id); };
+      function ng(t) { $('msg').textContent = t; }
+      $('toDate').addEventListener('click', function () {
+        ng(''); $('out1').textContent = '';
+        var s = $('ts').value.trim();
+        if (!/^-?\d+$/.test(s)) { ng('整数の UNIX 時間を入力してください。'); return; }
+        var n = Number(s), ms = s.replace('-', '').length >= 13 ? n : n * 1000;
+        var d = new Date(ms);
+        if (isNaN(d.getTime())) { ng('範囲外の値です。'); return; }
+        $('out1').textContent = 'UTC:   ' + d.toISOString() + '\nローカル: ' + d.toString() + '\n解釈:   ' + (ms === n ? 'ミリ秒' : '秒');
+      });
+      $('now').addEventListener('click', function () { $('ts').value = String(Math.floor(Date.now() / 1000)); $('toDate').click(); });
+      $('toTs').addEventListener('click', function () {
+        ng(''); $('out2').textContent = '';
+        var v = $('dt').value;
+        if (!v) { ng('日時を入力してください。'); return; }
+        var d = new Date(v);
+        if (isNaN(d.getTime())) { ng('日時を解釈できません。'); return; }
+        $('out2').textContent = '秒:       ' + Math.floor(d.getTime() / 1000) + '\nミリ秒:   ' + d.getTime();
+      });
+    })();
+  </script>
+</Base>
